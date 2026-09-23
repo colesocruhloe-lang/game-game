@@ -1,20 +1,123 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#080b14"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pulse Drop</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b14;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;touch-action:none}body{display:grid;place-items:center}.game{position:relative;width:min(100vw,480px);height:100dvh;max-height:900px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#17234a 0,#0c1021 42%,#070912 100%)}canvas{position:absolute;inset:0;width:100%;height:100%}.hud{position:absolute;z-index:3;top:max(18px,env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-weight:800}.score{font-size:34px;text-shadow:0 3px 15px #000}.best{font-size:14px;opacity:.8}.pill{background:#ffffff12;border:1px solid #ffffff20;border-radius:99px;padding:8px 12px}.screen{position:absolute;z-index:5;inset:0;display:grid;place-items:center;padding:30px;background:#050711cc;backdrop-filter:blur(5px)}.card{text-align:center;width:min(90%,360px);padding:30px 22px;border:1px solid #ffffff1c;border-radius:28px;background:#0d1224e8;box-shadow:0 25px 80px #0009}.logo{font-size:46px;font-weight:950;letter-spacing:-2px}.sub{opacity:.72;line-height:1.5;margin:8px 0 24px}.btn{border:0;border-radius:18px;padding:16px 26px;font-size:18px;font-weight:900;color:#08101b;background:#fff;cursor:pointer;box-shadow:0 10px 30px #0006}.hint{margin-top:18px;font-size:12px;opacity:.45}.hidden{display:none}.tap{position:absolute;z-index:2;inset:0}
-</style></head><body><main class="game"><canvas id="c"></canvas><div class="hud"><div><div class="score" id="score">0</div><div class="best">BEST <span id="best">0</span></div></div><div class="pill" id="combo">x1</div></div><div class="tap" id="tap"></div><section class="screen" id="menu"><div class="card"><div class="logo">PULSE<br>DROP</div><div class="sub">Tap the glowing pulse when it reaches the target. Build your combo and survive as long as you can.</div><button class="btn" id="start">PLAY</button><div class="hint">One tap. One chance. Beat your record.</div></div></section><section class="screen hidden" id="over"><div class="card"><div style="font-size:14px;opacity:.6">GAME OVER</div><div class="logo" id="final">0</div><div class="sub">Best: <b id="finalBest">0</b></div><button class="btn" id="again">PLAY AGAIN</button></div></section></main>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#070b18;color:#f7f8ff}
+body{display:flex;justify-content:center}
+#app{width:100%;max-width:520px;min-height:100vh;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 10%,#17224b 0,#0b1024 38%,#070b18 100%)}
+.screen{min-height:100vh;padding:24px 18px;display:none;flex-direction:column}.screen.active{display:flex}
+.logo{font-weight:1000;letter-spacing:-2px;font-size:42px;line-height:.95}.logo span{color:#65e7ff}
+.sub{color:#aab3d2;margin-top:8px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.pill{background:#111932;border:1px solid #263255;border-radius:999px;padding:9px 13px;font-weight:800}
+.hero{margin-top:48px;text-align:center}.orb{width:145px;height:145px;border-radius:50%;margin:0 auto 28px;background:radial-gradient(circle at 35% 30%,#fff,#67e8ff 18%,#7568ff 52%,#2a235f 72%,transparent 73%);box-shadow:0 0 45px #4bdfff77,0 0 110px #725cff44;animation:float 2.8s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px) scale(1.03)}}h1{font-size:31px;margin:0 0 10px}h2{font-size:22px;margin:0 0 14px}
+.btn{width:100%;border:0;border-radius:18px;padding:17px 18px;margin-top:12px;font-size:17px;font-weight:950;color:#07101c;background:linear-gradient(135deg,#6ef2ff,#8e7cff);box-shadow:0 10px 30px #5c8cff22;cursor:pointer}.btn.secondary{background:#131b35;color:#eaf0ff;border:1px solid #2a365d}.btn:active{transform:scale(.98)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}.card{background:#10172d;border:1px solid #27345b;border-radius:20px;padding:16px}.big{font-size:28px;font-weight:1000}.muted{color:#8792b7;font-size:13px}
+.list{display:grid;gap:10px;margin-top:12px}.row{display:flex;justify-content:space-between;align-items:center;background:#10172d;border:1px solid #27345b;border-radius:15px;padding:14px}
+#game{padding:0}.gamebar{padding:18px;display:flex;justify-content:space-between;align-items:center;z-index:2}.score{font-size:30px;font-weight:1000}.canvaswrap{flex:1;position:relative;min-height:500px}.gamecanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.gamehint{position:absolute;top:25%;left:0;right:0;text-align:center;color:#9da8cc;font-weight:700;pointer-events:none}
+.back{background:#10172d;border:1px solid #27345b;color:#fff;border-radius:13px;padding:10px 13px;font-weight:900;cursor:pointer}
+.modal{position:absolute;inset:0;background:#050816dd;backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;z-index:5}.modal.show{display:flex}.modalbox{width:100%;background:#111831;border:1px solid #33416c;border-radius:26px;padding:24px;box-shadow:0 25px 90px #0009}
+.bar{height:10px;background:#202a48;border-radius:99px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#65e7ff,#8877ff);width:0}
+.badge{display:inline-block;padding:6px 9px;border-radius:10px;background:#182341;color:#77edff;font-size:12px;font-weight:900;margin-bottom:10px}
+@media(max-width:360px){.logo{font-size:35px}.hero{margin-top:28px}}
+</style>
+</head>
+<body>
+<div id="app">
+<section id="home" class="screen active">
+  <div class="top"><div class="pill">⚡ <span id="coins">0</span></div><div class="pill">🏆 <span id="best">0</span></div></div>
+  <div class="hero">
+    <div class="orb"></div><div class="badge">SEASON 1 · NEON RUSH</div>
+    <h1>PULSE DROP</h1><div class="sub">Поймай ритм. Собери комбо. Побей свой рекорд.</div>
+    <button class="btn" id="play">ИГРАТЬ</button>
+    <div class="grid">
+      <button class="btn secondary" id="shop">🛒 Магазин</button>
+      <button class="btn secondary" id="missions">🎯 Задания</button>
+    </div>
+  </div>
+</section>
+
+<section id="menu" class="screen">
+  <div class="top"><div><div class="logo">PULSE<span>.</span></div><div class="sub">Твой прогресс</div></div><button class="back" data-home>←</button></div>
+  <div class="grid">
+    <div class="card"><div class="muted">РЕКОРД</div><div class="big" id="best2">0</div></div>
+    <div class="card"><div class="muted">МОНЕТЫ</div><div class="big" id="coins2">0</div></div>
+  </div>
+  <div style="margin-top:28px"><h2>Режимы</h2>
+    <button class="btn" id="play2">⚡ Неоновый забег</button>
+    <button class="btn secondary" id="challenge">🔥 Испытание дня</button>
+  </div>
+  <div style="margin-top:26px"><h2>Как играть</h2><div class="card">Тапай по светящимся ядрам, пока они не исчезли. Каждый точный тап увеличивает комбо. Ошибка сбрасывает комбо.</div></div>
+</section>
+
+<section id="shopScreen" class="screen">
+  <div class="top"><div><div class="logo">МАГАЗИН</div><div class="sub">Монеты: <b id="shopCoins">0</b></div></div><button class="back" data-home>←</button></div>
+  <div class="list" id="shopList"></div>
+</section>
+
+<section id="missionsScreen" class="screen">
+  <div class="top"><div><div class="logo">ЗАДАНИЯ</div><div class="sub">Награды за игру каждый день</div></div><button class="back" data-home>←</button></div>
+  <div class="list" id="missionList"></div>
+</section>
+
+<section id="game" class="screen">
+  <div class="gamebar"><button class="back" id="quit">×</button><div style="text-align:center"><div class="muted">SCORE</div><div class="score" id="score">0</div></div><div class="pill">🔥 <span id="combo">0</span></div></div>
+  <div class="canvaswrap"><canvas id="c" class="gamecanvas"></canvas><div class="gamehint" id="hint">Тапай по ядру</div></div>
+</section>
+
+<div id="modal" class="modal"><div class="modalbox">
+  <div class="badge">RUN COMPLETE</div><h2 id="overTitle">Забег окончен</h2>
+  <div class="grid"><div class="card"><div class="muted">СЧЁТ</div><div class="big" id="finalScore">0</div></div><div class="card"><div class="muted">КОМБО</div><div class="big" id="finalCombo">0</div></div></div>
+  <button class="btn" id="again">ЕЩЁ РАЗ</button><button class="btn secondary" id="home2">В МЕНЮ</button>
+</div></div>
+</div>
 <script>
-(()=>{const c=document.getElementById('c'),x=c.getContext('2d'),game=document.querySelector('.game'),tap=document.getElementById('tap'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),comboEl=document.getElementById('combo'),menu=document.getElementById('menu'),over=document.getElementById('over'),final=document.getElementById('final'),finalBest=document.getElementById('finalBest');let W,H,dpr,playing=false,score=0,combo=1,best=+localStorage.pulseBest||0,t=0,last=0,target=0,orb=0,particles=[];bestEl.textContent=best;
-function resize(){dpr=Math.min(devicePixelRatio||1,2);W=game.clientWidth;H=game.clientHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);target=W*.5}addEventListener('resize',resize);resize();
-function start(){playing=true;score=0;combo=1;t=0;last=performance.now();orb=H*.18;particles=[];scoreEl.textContent=0;comboEl.textContent='x1';menu.classList.add('hidden');over.classList.add('hidden');requestAnimationFrame(loop)}
-function end(){playing=false;best=Math.max(best,score);localStorage.pulseBest=best;final.textContent=score;finalBest.textContent=best;over.classList.remove('hidden');navigator.vibrate?.([30,50,80])}
-function burst(px,py){for(let i=0;i<18;i++){let a=Math.random()*Math.PI*2,s=60+Math.random()*160;particles.push({x:px,y:py,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:2+Math.random()*4,l:1})}}
-function hit(){if(!playing)return;let centerY=H*.48,dist=Math.abs(orb-centerY),zone=42+Math.min(combo*2,22);if(dist<=zone){score+=combo;combo=Math.min(20,combo+1);scoreEl.textContent=score;comboEl.textContent='x'+combo;burst(target,orb);navigator.vibrate?.(10);orb=H*.18}else{combo=1;comboEl.textContent='x1';orb=H*.18}}
-tap.addEventListener('pointerdown',e=>{if(playing)hit()});document.getElementById('start').onclick=start;document.getElementById('again').onclick=start;
-function loop(now){if(!playing)return;let dt=Math.min(.032,(now-last)/1000);last=now;orb+=dt*(210+combo*11);if(orb>H+50){end();return}draw(dt);requestAnimationFrame(loop)}
-function draw(dt){x.clearRect(0,0,W,H);let cy=H*.48;x.save();x.globalAlpha=.18;x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(24,cy);x.lineTo(W-24,cy);x.stroke();x.globalAlpha=.07;for(let r=50;r<Math.max(W,H);r+=45){x.beginPath();x.arc(target,cy,r,0,Math.PI*2);x.stroke()}x.restore();let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#4be8ff');g.addColorStop(1,'#8b5cff');x.fillStyle=g;x.beginPath();x.arc(target,cy,46,0,Math.PI*2);x.globalAlpha=.09;x.fill();x.globalAlpha=1;x.strokeStyle='#ffffff99';x.lineWidth=2;x.stroke();x.fillStyle='#fff';x.shadowBlur=28;x.shadowColor='#63eaff';x.beginPath();x.arc(target,orb,18,0,Math.PI*2);x.fill();x.shadowBlur=0;for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=110*dt;p.l-=dt*1.8;x.globalAlpha=Math.max(0,p.l);x.fillStyle='#fff';x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fill();if(p.l<=0)particles.splice(i,1)}x.globalAlpha=1}
-})();</script></body></html>
+(()=>{const $=s=>document.querySelector(s), screens=[...document.querySelectorAll('.screen')];
+let state={coins:+localStorage.getItem('pd_coins')||0,best:+localStorage.getItem('pd_best')||0,theme:localStorage.getItem('pd_theme')||'cyan',owned:JSON.parse(localStorage.getItem('pd_owned')||'["cyan"]')};
+function save(){localStorage.setItem('pd_coins',state.coins);localStorage.setItem('pd_best',state.best);localStorage.setItem('pd_theme',state.theme);localStorage.setItem('pd_owned',JSON.stringify(state.owned))}
+function show(id){screens.forEach(x=>x.classList.toggle('active',x.id===id));update()}
+function update(){['coins','coins2','shopCoins'].forEach(id=>{let e=$('#'+id);if(e)e.textContent=state.coins});['best','best2'].forEach(id=>{let e=$('#'+id);if(e)e.textContent=state.best})}
+function shop(){
+let items=[
+ ['cyan','CYAN CORE','Базовый неоновый скин',0],
+ ['violet','VIOLET CORE','Фиолетовый энергетический скин',120],
+ ['gold','GOLD CORE','Золотой премиум-скин',300],
+ ['ruby','RUBY CORE','Красный редкий скин',500],
+ ['ice','ICE CORE','Ледяной кристальный скин',800]
+];
+$('#shopList').innerHTML=items.map(x=>{
+ let owned=state.owned.includes(x[0]), active=state.theme===x[0];
+ let action=active?'ИСПОЛЬЗУЕТСЯ':owned?'ВЫБРАТЬ':x[3]+' ⚡';
+ return `<div class="row"><div><b>${x[0].toUpperCase()}</b><div class="muted">${x[2]}</div></div><button class="back" data-buy="${x[0]}" data-cost="${x[3]}" ${active?'disabled':''}>${action}</button></div>`;
+}).join('');
+document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{
+ let id=b.dataset.buy,cost=+b.dataset.cost;
+ if(state.owned.includes(id)){state.theme=id;save();shop();return}
+ if(state.coins>=cost){
+   state.coins-=cost;state.owned.push(id);state.theme=id;save();shop();
+ } else {
+   b.textContent='НЕ ХВАТАЕТ ⚡';
+   setTimeout(shop,900);
+ }
+});
+}
+function missions(){let data=[['Сделай 10 точных тапов','+50 ⚡',10],['Набери комбо x5','+80 ⚡',5],['Сыграй 3 забега','+120 ⚡',3]];$('#missionList').innerHTML=data.map((x,i)=>`<div class="row"><div><b>${x[0]}</b><div class="muted">Прогресс: ${Math.min(i===0?gameStats.taps:i===1?gameStats.maxCombo:gameStats.runs,x[2])}/${x[2]}</div></div><b>${x[1]}</b></div>`).join('')}
+let gameStats={taps:0,maxCombo:0,runs:0},score=0,combo=0,targets=[],running=false,raf=0,last=0,spawn=0;
+const cv=$('#c'),ctx=cv.getContext('2d');
+function resize(){let r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0)}window.addEventListener('resize',resize);
+function start(){show('game');setTimeout(()=>{resize();score=0;combo=0;targets=[];running=true;last=performance.now();spawn=0;$('#score').textContent=0;$('#combo').textContent=0;$('#hint').style.display='block';gameStats.runs++;loop(last)},50)}
+function loop(t){if(!running)return;let dt=Math.min(40,t-last);last=t;spawn-=dt;if(spawn<=0){spawnTarget();spawn=Math.max(360,850-score*1.5)}targets.forEach(o=>{o.life-=dt;o.r+=dt*.018});targets=targets.filter(o=>o.life>0);draw();raf=requestAnimationFrame(loop)}
+function spawnTarget(){let r=cv.getBoundingClientRect(),pad=55;targets.push({x:pad+Math.random()*(r.width-pad*2),y:80+Math.random()*Math.max(100,r.height-160),r:24,life:1300,max:1300})}
+function draw(){let r=cv.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);ctx.fillStyle='#070b18';ctx.fillRect(0,0,r.width,r.height);for(let i=0;i<16;i++){ctx.fillStyle='rgba(100,120,220,.06)';ctx.beginPath();ctx.arc((i*97)%r.width,(i*157)%r.height,2,0,7);ctx.fill()}for(let o of targets){let a=Math.max(.15,o.life/o.max),col=state.theme==='gold'?'#ffd86a':state.theme==='violet'?'#ad83ff':state.theme==='ruby'?'#ff6680':state.theme==='ice'?'#b9f6ff':'#67e9ff';ctx.globalAlpha=a;ctx.beginPath();ctx.arc(o.x,o.y,o.r+8+o.r*.1*Math.sin(o.r),0,7);ctx.fillStyle=col+'33';ctx.fill();ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,7);ctx.fillStyle=col;ctx.shadowBlur=28;ctx.shadowColor=col;ctx.fill();ctx.shadowBlur=0;ctx.beginPath();ctx.arc(o.x-7,o.y-7,6,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.globalAlpha=1}}
+cv.addEventListener('pointerdown',e=>{if(!running)return;let r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,idx=targets.findIndex(o=>Math.hypot(x-o.x,y-o.y)<o.r+18);if(idx<0){combo=0;$('#combo').textContent=0;return}let o=targets.splice(idx,1)[0];combo++;gameStats.taps++;gameStats.maxCombo=Math.max(gameStats.maxCombo,combo);score+=10+combo*3;state.coins+=2+Math.min(8,combo);$('#score').textContent=score;$('#combo').textContent=combo;$('#hint').style.display='none';if(score>state.best){state.best=score}save()});
+function end(){running=false;cancelAnimationFrame(raf);$('#finalScore').textContent=score;$('#finalCombo').textContent=gameStats.maxCombo;$('#overTitle').textContent=score>=state.best?'Новый рекорд!':'Забег окончен';$('#modal').classList.add('show');save()}
+$('#play').onclick=start;$('#play2').onclick=start;$('#challenge').onclick=start;$('#again').onclick=()=>{$('#modal').classList.remove('show');start()};$('#home2').onclick=()=>{$('#modal').classList.remove('show');show('home')};$('#quit').onclick=()=>{end();$('#modal').classList.remove('show');show('home')};
+$('#shop').onclick=()=>{show('shopScreen');shop()};$('#missions').onclick=()=>{show('missionsScreen');missions()};document.querySelectorAll('[data-home]').forEach(b=>b.onclick=()=>show('home'));
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&running)end()});
+update();
+})();
+</script>
+</body></html>
